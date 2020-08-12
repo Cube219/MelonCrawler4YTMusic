@@ -1,0 +1,51 @@
+# SOME DESCRIPTIVE TITLE.
+# Copyright (C) YEAR THE PACKAGE'S COPYRIGHT HOLDER
+# This file is distributed under the same license as the PACKAGE package.
+# FIRST AUTHOR <EMAIL@ADDRESS>, YEAR.
+#
+msgid ""
+msgstr ""
+"Project-Id-Version: \n"
+"Report-Msgid-Bugs-To: \n"
+"POT-Creation-Date: 2020-07-21 09:15+0200\n"
+"PO-Revision-Date: 2020-08-12 20:58+0900\n"
+"Language-Team: \n"
+"MIME-Version: 1.0\n"
+"Content-Type: text/plain; charset=UTF-8\n"
+"Content-Transfer-Encoding: 8bit\n"
+"X-Generator: Poedit 2.4.1\n"
+"Last-Translator: \n"
+"Plural-Forms: nplurals=1; plural=0;\n"
+"Language: ko_KR\n"
+
+#: ytmusicapi/parsers.py:44
+msgid "artist"
+msgstr "아티스트"
+
+#: ytmusicapi/parsers.py:44
+msgid "playlist"
+msgstr "재생목록"
+
+#: ytmusicapi/parsers.py:44
+msgid "song"
+msgstr "노래"
+
+#: ytmusicapi/parsers.py:44
+msgid "video"
+msgstr "동영상"
+
+#: ytmusicapi/parsers.py:93
+msgid "albums"
+msgstr "앨범"
+
+#: ytmusicapi/parsers.py:93
+msgid "singles"
+msgstr "싱글"
+
+#: ytmusicapi/parsers.py:93
+msgid "videos"
+msgstr "동영상"
+
+#: ytmusicapi/parsers.py:93
+msgid "playlists"
+msgstr "플레이리스트"

@@ -19,7 +19,10 @@ $ sudo docker build -t cube219/melon-crawler:latest .
 $ git clone https://github.com/Cube219/MelonCrawler4YTMusic.git
 $ cd MelonCrawler4YTMusic
 $ pip lnstall -r requirements.txt
+$ cp -rf ytmusicapi_modified [YOUR_PYTHON_LIB_FOLDER]
 ```
+
+The last instruction is for supporting Korean language.
 
 ### 2. Setting environment variables
 
