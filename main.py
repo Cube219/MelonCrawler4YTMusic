@@ -10,6 +10,9 @@ class MelonCrawler :
     playlist_name = ""
     melon_song_infos = []
 
+    before_playlist_id = ""
+    song_ids = []
+
     def init_youtube_music_api(self, cookie, playlist_name) :
         if cookie == None :
             print("Cookie is not set.")
@@ -47,6 +50,73 @@ class MelonCrawler :
 
             self.melon_song_infos.append((title, artist, album))
 
+    def update_song_ids(self) :
+        self.song_ids = []
+
+        for song_info in self.melon_song_infos :
+            song_title = song_info[0]
+            song_artist = song_info[1]
+            song_album = song_info[2]
+
+            song_id = "NotFound"
+
+            # 곡명으로 검색
+            search_res = self.ytmusic.search(song_title)
+
+            # 1. artist가 일치
+            for i in range(0, len(search_res)) :
+                info = search_res[i]
+                if "videoId" not in info :
+                    continue
+
+                if "artist" in info :
+                    if info["artist"].find(song_artist) != -1 or song_artist.find(info["artist"]) != -1 :
+                        song_id = info["videoId"]
+                        break
+
+                if "artists" in info :
+                    for artist in info["artists"] :
+                        artist_name = artist["name"]
+                        if artist_name.find(song_artist) != -1 or song_artist.find(artist_name) != -1 :
+                            song_id = info["videoId"]
+                            break
+                
+                if song_id != "NotFound":
+                    break
+            
+            if song_id != "NotFound" :
+                self.song_ids.append(song_id)
+                continue
+            
+            # 2. album이 일치
+            for i in range(0, len(search_res)) :
+                info = search_res[i]
+                if "videoId" not in info or "album" not in info :
+                    continue
+
+                album_name = info["album"]["name"]
+
+                if album_name.find(song_album) != -1 or song_album.find(album_name) != -1 :
+                    song_id = info["videoId"]
+                    break
+
+            if song_id != "NotFound" :
+                self.song_ids.append(song_id)
+                continue
+            
+            # 3. 그냥 맨 앞에 것
+            for i in range(0, len(search_res)) :
+                info = search_res[i]
+                if "videoId" not in info :
+                    continue
+                
+                song_id = info["videoId"]
+                break
+
+            self.song_ids.append(song_id)
+
+        pprint.pprint(self.song_ids)
+
 # ----------------------------------------------
 
 load_dotenv(verbose=True)
@@ -59,3 +129,4 @@ if playlist_name == None :
 crawler = MelonCrawler()
 crawler.init_youtube_music_api(cookie, playlist_name)
 crawler.update_song_infos()
+crawler.update_song_ids()
