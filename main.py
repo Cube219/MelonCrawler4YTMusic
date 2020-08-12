@@ -1,10 +1,11 @@
 import requests
 from bs4 import BeautifulSoup
 from ytmusicapi import YTMusic
-import os
+import sys, os, traceback
 from dotenv import load_dotenv
 import pprint
 import logging
+from time import sleep
 
 class MelonCrawler :
     ytmusic: YTMusic
@@ -35,13 +36,12 @@ class MelonCrawler :
         
         logging.info("Successfully initialize youtube music api.")
 
-    def update_song_infos(self) -> bool :
+    def update_song_infos(self) :
         logging.info("Updating Melon chart 100 infos...")
 
         melon_page_req = requests.get("https://www.melon.com/chart/index.htm", headers = {"User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/84.0.4147.105 Safari/537.36"})
         if melon_page_req.ok == False:
-            logging.error(f"Failed to get a Melon chart page. (Status Code: {melon_page_req.status_code})")
-            return False
+            raise Exception(f"Failed to get a Melon chart page. (Status Code: {melon_page_req.status_code})")
 
         soup = BeautifulSoup(melon_page_req.content, "html.parser")
         song_infos = soup.select(".wrap_song_info")
@@ -57,7 +57,6 @@ class MelonCrawler :
             self.melon_song_infos.append((title, artist, album))
 
         logging.info("Successfully update Melon chart 100 infos.")
-        return True
 
     def update_song_ids(self) :
         logging.info("Updating song ids...")
@@ -174,9 +173,34 @@ cookie = os.getenv("COOKIE")
 playlist_name = os.getenv("PLAYLIST_NAME")
 if playlist_name == None :
     playlist_name = "Melon Chart 100"
+update_interval = os.getenv("UPDATE_INTERVAL")
+if update_interval == None :
+    update_interval = 24 * 60 * 60 # 1 day
+else :
+    update_interval = int(update_interval)
 
 crawler = MelonCrawler()
 crawler.init_youtube_music_api(cookie, playlist_name)
-crawler.update_song_infos()
-crawler.update_song_ids()
-crawler.update_playlist()
+
+fail_num = 0
+
+while True :
+    try :
+        crawler.update_song_infos()
+        crawler.update_song_ids()
+        crawler.update_playlist()
+
+        fail_num = 0
+
+        sleep(update_interval)
+    except Exception as e :
+        logging.error(f"An exception occurred!\n{traceback.format_exc()}")
+        logging.error("Will try again in 10 minutes...")
+
+        fail_num += 1
+
+        if fail_num >= 5 :
+            logging.error("Failed to update music chart 5 times continuously. Exit the program.")
+            break
+
+        sleep(10 * 60) # 10 min
