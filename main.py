@@ -1,7 +1,7 @@
 import requests
 from bs4 import BeautifulSoup
 from ytmusicapi import YTMusic
-import sys, os, traceback
+import os, traceback
 from dotenv import load_dotenv
 import pprint
 import logging
@@ -36,8 +36,8 @@ class MelonCrawler :
         
         logging.info("Successfully initialize youtube music api.")
 
-    def update_song_infos(self) :
-        logging.info("Updating Melon chart 100 infos...")
+    def get_chart_infos(self) :
+        logging.info("Getting Melon chart infos...")
 
         melon_page_req = requests.get("https://www.melon.com/chart/index.htm", headers = {"User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/84.0.4147.105 Safari/537.36"})
         if melon_page_req.ok == False:
@@ -56,10 +56,10 @@ class MelonCrawler :
 
             self.melon_song_infos.append((title, artist, album))
 
-        logging.info("Successfully update Melon chart 100 infos.")
+        logging.info("Successfully get Melon chart infos.")
 
-    def update_song_ids(self) :
-        logging.info("Updating song ids...")
+    def get_song_ids(self) :
+        logging.info("Getting song ids...")
 
         self.song_ids = []
         update_count = 0
@@ -73,12 +73,12 @@ class MelonCrawler :
 
             song_id = "NotFound"
 
-            logging.info(f"Getting song id... ({update_count}/{len(self.melon_song_infos)}) / {song_title}")
+            logging.info(f"Getting song id... ({update_count}/{len(self.melon_song_infos)}) / {song_title} - {song_artist}")
 
-            # 곡명으로 검색
+            # Search by title
             search_res = self.ytmusic.search(song_title)
 
-            # 1. artist가 일치
+            # 1. Check artist
             for i in range(0, len(search_res)) :
                 info = search_res[i]
                 if "videoId" not in info :
@@ -103,7 +103,7 @@ class MelonCrawler :
                 self.song_ids.append(song_id)
                 continue
             
-            # 2. album이 일치
+            # 2. Check album
             for i in range(0, len(search_res)) :
                 info = search_res[i]
                 if "videoId" not in info or "album" not in info :
@@ -119,7 +119,7 @@ class MelonCrawler :
                 self.song_ids.append(song_id)
                 continue
             
-            # 3. 그냥 맨 앞에 것
+            # 3. Just first element
             for i in range(0, len(search_res)) :
                 info = search_res[i]
                 if "videoId" not in info :
@@ -130,7 +130,7 @@ class MelonCrawler :
 
             self.song_ids.append(song_id)
 
-        logging.info("Successfully update song ids.")
+        logging.info("Successfully get song ids.")
 
     def update_playlist(self) :
         logging.info("Updating playlist...")
@@ -146,8 +146,7 @@ class MelonCrawler :
         if self.playlist_id == "" :
             new_playlist_id = self.ytmusic.create_playlist(self.playlist_name, "", video_ids=self.song_ids)
             if type(new_playlist_id) is not str :
-                logging.error("Failed to create a new playlist.")
-                return
+                raise Exception(f"Failed to create a new playlist\n{new_playlist_id}")
 
             self.playlist_id = new_playlist_id
 
@@ -165,7 +164,8 @@ class MelonCrawler :
 
 if os.path.isdir("log") == False :
     os.mkdir("log")
-logging.basicConfig(handlers=[logging.FileHandler("log/log.log"), logging.StreamHandler()], level=logging.INFO, format="%(asctime)s [%(levelname)s]: %(message)s", datefmt="%Y-%m-%d %H:%M:%S")
+
+logging.basicConfig(handlers=[logging.FileHandler(f"log/logs.log"), logging.StreamHandler()], level=logging.INFO, format="%(asctime)s [%(levelname)s]: %(message)s", datefmt="%Y-%m-%d %H:%M:%S")
 
 load_dotenv(verbose=True)
 
@@ -186,8 +186,8 @@ fail_num = 0
 
 while True :
     try :
-        crawler.update_song_infos()
-        crawler.update_song_ids()
+        crawler.get_chart_infos()
+        crawler.get_song_ids()
         crawler.update_playlist()
 
         fail_num = 0
