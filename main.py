@@ -11,7 +11,7 @@ class MelonCrawler :
     playlist_name = ""
     melon_song_infos = []
 
-    before_playlist_id = ""
+    playlist_id = ""
     song_ids = []
 
     def init_youtube_music_api(self, cookie, playlist_name) :
@@ -63,9 +63,11 @@ class MelonCrawler :
         logging.info("Updating song ids...")
 
         self.song_ids = []
-        update_count = 1
+        update_count = 0
 
         for song_info in self.melon_song_infos :
+            update_count = update_count + 1
+
             song_title = song_info[0]
             song_artist = song_info[1]
             song_album = song_info[2]
@@ -128,15 +130,43 @@ class MelonCrawler :
                 break
 
             self.song_ids.append(song_id)
-            update_count = update_count + 1
 
         logging.info("Successfully update song ids.")
+
+    def update_playlist(self) :
+        logging.info("Updating playlist...")
+
+        if self.playlist_id == "" :
+            playlists = self.ytmusic.get_library_playlists()
+
+            for playlist in playlists :
+                if playlist["title"] == self.playlist_name :
+                    self.playlist_id = playlist["playlistId"]
+                    break
+
+        if self.playlist_id == "" :
+            new_playlist_id = self.ytmusic.create_playlist(self.playlist_name, "", video_ids=self.song_ids)
+            if type(new_playlist_id) is not str :
+                logging.error("Failed to create a new playlist.")
+                return
+
+            self.playlist_id = new_playlist_id
+
+        playlist_info = self.ytmusic.get_playlist(self.playlist_id, 200)
+
+        track_list = playlist_info["tracks"]
+        if len(track_list) > 0 :
+            self.ytmusic.remove_playlist_items(self.playlist_id, track_list)
+
+        self.ytmusic.add_playlist_items(self.playlist_id, self.song_ids)
+
+        logging.info("Successfully update playlist.")
 
 # ----------------------------------------------
 
 if os.path.isdir("log") == False :
     os.mkdir("log")
-logging.basicConfig(filename="log/log.log", level=logging.INFO, format="%(asctime)s [%(levelname)s]: %(message)s", datefmt="%Y-%m-%d %H:%M:%S")
+logging.basicConfig(handlers=[logging.FileHandler("log/log.log"), logging.StreamHandler()], level=logging.INFO, format="%(asctime)s [%(levelname)s]: %(message)s", datefmt="%Y-%m-%d %H:%M:%S")
 
 load_dotenv(verbose=True)
 
@@ -149,3 +179,4 @@ crawler = MelonCrawler()
 crawler.init_youtube_music_api(cookie, playlist_name)
 crawler.update_song_infos()
 crawler.update_song_ids()
+crawler.update_playlist()
