@@ -69,12 +69,12 @@ class MelonCrawler :
             update_count = update_count + 1
 
             song_title = song_info[0]
-            song_artist = song_info[1]
-            song_album = song_info[2]
+            song_artist = song_info[1].lower()
+            song_album = song_info[2].lower()
 
             song_id = "NotFound"
 
-            logging.info(f"Getting song id... ({update_count}/{len(self.melon_song_infos)}) / {song_title} - {song_artist}")
+            logging.info(f"Getting song id... ({update_count}/{len(self.melon_song_infos)}) / {song_title} - {song_info[1]}")
 
             # Search by title
             search_res = self.ytmusic.search(song_title, filter="songs")
@@ -87,7 +87,7 @@ class MelonCrawler :
                 if info["album"] is None :
                     continue
 
-                album_name = info["album"]["name"]
+                album_name = info["album"]["name"].lower()
 
                 if album_name.find(song_album) != -1 or song_album.find(album_name) != -1 :
                     song_id = info["videoId"]
@@ -96,9 +96,7 @@ class MelonCrawler :
             if song_id != "NotFound" :
                 if song_id not in self.song_ids :
                     self.song_ids.append(song_id)
-                else :
-                    skip_num += 1
-                continue
+                    continue 
 
             # 2. Check artist
             for i in range(0, len(search_res)) :
@@ -107,27 +105,26 @@ class MelonCrawler :
                     continue
 
                 if "artist" in info and info["artist"] is not None :
-                    if info["artist"].find(song_artist) != -1 or song_artist.find(info["artist"]) != -1 :
+                    artist_name = info["artist"].lower()
+                    if artist_name.find(song_artist) != -1 or song_artist.find(artist_name) != -1 :
                         song_id = info["videoId"]
                         break
 
                 if "artists" in info and info["artists"] is not None :
                     for artist in info["artists"] :
-                        artist_name = artist["name"]
+                        artist_name = artist["name"].lower()
                         if artist_name.find(song_artist) != -1 or song_artist.find(artist_name) != -1 :
                             song_id = info["videoId"]
                             break
                 
                 if song_id != "NotFound":
                     break
-            
+
             if song_id != "NotFound" :
                 if song_id not in self.song_ids :
                     self.song_ids.append(song_id)
-                else :
-                    skip_num += 1
-                continue
-            
+                    continue
+
             # 3. Just first element
             for i in range(0, len(search_res)) :
                 info = search_res[i]
@@ -137,10 +134,12 @@ class MelonCrawler :
                 song_id = info["videoId"]
                 break
 
-            if song_id not in self.song_ids :
-                self.song_ids.append(song_id)
-            else :
-                skip_num += 1
+            if song_id != "NotFound" :
+                if song_id not in self.song_ids :
+                    self.song_ids.append(song_id)
+                    continue
+
+            skip_num += 1
 
         logging.info(f"Successfully get song ids. (Skip num: {skip_num})")
 
