@@ -84,6 +84,8 @@ class MelonCrawler :
                 info = search_res[i]
                 if "videoId" not in info or "album" not in info :
                     continue
+                if info["album"] is None :
+                    continue
 
                 album_name = info["album"]["name"]
 
@@ -104,12 +106,12 @@ class MelonCrawler :
                 if "videoId" not in info :
                     continue
 
-                if "artist" in info :
+                if "artist" in info and info["artist"] is not None :
                     if info["artist"].find(song_artist) != -1 or song_artist.find(info["artist"]) != -1 :
                         song_id = info["videoId"]
                         break
 
-                if "artists" in info :
+                if "artists" in info and info["artists"] is not None :
                     for artist in info["artists"] :
                         artist_name = artist["name"]
                         if artist_name.find(song_artist) != -1 or song_artist.find(artist_name) != -1 :
