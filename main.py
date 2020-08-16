@@ -9,6 +9,7 @@ from time import sleep
 
 class MelonCrawler :
     ytmusic: YTMusic
+    ytmusic_no_user: YTMusic
     playlist_name = ""
     melon_song_infos = []
 
@@ -32,6 +33,7 @@ class MelonCrawler :
         }""" % cookie
 
         self.ytmusic = YTMusic(json_str, language='ko')
+        self.ytmusic_no_user = YTMusic(None, language='ko')
         self.playlist_name = playlist_name
         
         logging.info("Successfully initialize youtube music api.")
@@ -77,7 +79,7 @@ class MelonCrawler :
             logging.info(f"Getting song id... ({update_count}/{len(self.melon_song_infos)}) / {song_title} - {song_info[1]}")
 
             # Search by title
-            search_res = self.ytmusic.search(song_title, filter="songs")
+            search_res = self.ytmusic_no_user.search(song_title, filter="songs")
 
             # 1. Check album
             for i in range(0, len(search_res)) :
